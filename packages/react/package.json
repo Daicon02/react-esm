@@ -1,0 +1,9 @@
+{
+	"name": "react",
+	"version": "1.0.0",
+	"description": "Utility functions for React applications.",
+	"main": "index.js",
+	"keywords": [],
+	"author": "",
+	"license": "ISC"
+}
