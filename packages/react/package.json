@@ -1,8 +1,11 @@
 {
 	"name": "react",
 	"version": "1.0.0",
-	"description": "Utility functions for React applications.",
-	"main": "index.js",
+	"description": "Utility functions for React applications",
+	"module": "index.ts",
+  "dependencies": {
+    "shared": "workspace:*"
+  },
 	"keywords": [],
 	"author": "",
 	"license": "ISC"
