@@ -4,7 +4,7 @@
 	"description": "Utility functions for React applications",
 	"module": "index.ts",
   "dependencies": {
-    "shared": "workspace:*"
+    "shared": "workspace: *"
   },
 	"keywords": [],
 	"author": "",

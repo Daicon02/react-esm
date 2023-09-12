@@ -1,6 +1,12 @@
 import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols'
-import { Key, Props, ReactElementType, Ref, Type } from 'shared/ReactTypes'
-import { ElementType } from '../../shared/ReactTypes'
+import type {
+  Key,
+  Props,
+  ReactElementType,
+  Ref,
+  Type,
+  ElementType,
+} from 'shared/ReactTypes'
 
 // ReactElement
 const ReactElement = function (
@@ -20,7 +26,11 @@ const ReactElement = function (
   return element
 }
 
-export const jsx = (type: ElementType, config: any, ...maybeChildren: any[]) => {
+export const jsx = (
+  type: ElementType,
+  config: any,
+  ...maybeChildren: any[]
+): ReactElementType => {
   let key: Key = null
   const props: Props = {}
   let ref: Ref = null
@@ -42,16 +52,14 @@ export const jsx = (type: ElementType, config: any, ...maybeChildren: any[]) => 
 
   const maybeChildrenLength = maybeChildren.length
   if (maybeChildrenLength) {
-    props.children = maybeChildrenLength === 1 ? maybeChildren[0] : maybeChildren
+    props.children =
+      maybeChildrenLength === 1 ? maybeChildren[0] : maybeChildren
   }
 
   return ReactElement(type, key, ref, props)
 }
 
-export const jsxDEV = (
-  type: ElementType,
-  config: any,
-) => {
+export const jsxDEV = (type: ElementType, config: any): ReactElementType => {
   let key: Key = null
   const props: Props = {}
   let ref: Ref = null
@@ -73,4 +81,3 @@ export const jsxDEV = (
 
   return ReactElement(type, key, ref, props)
 }
-
