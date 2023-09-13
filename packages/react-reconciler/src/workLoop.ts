@@ -1,14 +1,35 @@
 import { beginWork } from './beginWork'
 import { completeWork } from './completeWork'
-import { FiberNode } from './fiber'
+import { FiberNode, FiberRootNode, createWorkInProgress } from './fiber'
+import { HostRoot } from './workTags'
 
 let workInProgress: FiberNode | null
 
-function prepareFreshStack(fiber: FiberNode) {
-  workInProgress = fiber
+function prepareFreshStack(root: FiberRootNode) {
+  workInProgress = createWorkInProgress(root.current, {})
 }
 
-function renderRoot(root: FiberNode) {
+export function scheduleUpdateRootOnFiber(fiber: FiberNode) {
+  // TODO schedule
+  // get fiberRootNode
+  const root = markUpdateFromFiberToRoot(fiber)
+  renderRoot(root)
+}
+
+function markUpdateFromFiberToRoot(fiber: FiberNode) {
+  let node = fiber
+  let parent = node.return
+  while (parent !== null) {
+    node = parent
+    parent = node.return
+  }
+  if (node.tag === HostRoot) {
+    return node.stateNode
+  }
+  return null
+}
+
+function renderRoot(root: FiberRootNode) {
   // init
   prepareFreshStack(root)
 
@@ -17,7 +38,9 @@ function renderRoot(root: FiberNode) {
       workLoop()
       break
     } catch (e) {
-      console.warn('workLoop error', e)
+      if (__DEV__) {
+        console.warn('workLoop error', e)
+      }
       workInProgress = null
     }
   }
@@ -29,28 +52,28 @@ function workLoop() {
   }
 }
 
-function performUnitOfWork(fiber: FiberNode) {
-  const next = beginWork(fiber)
-  fiber.memorizedProps = fiber.pendingProps
+function performUnitOfWork(unitOfWork: FiberNode) {
+  const next = beginWork(unitOfWork)
+  unitOfWork.memorizedProps = unitOfWork.pendingProps
 
   if (next === null) {
-    completeUnitOfWork(fiber)
+    completeUnitOfWork(unitOfWork)
   } else {
     workInProgress = next
   }
 }
 
-function completeUnitOfWork(fiber: FiberNode) {
-  let node: FiberNode | null = fiber
-  while (node !== null) {
-    completeWork(node)
-    const sibling = node.sibling
+function completeUnitOfWork(unitOfWork: FiberNode) {
+  let completedWork: FiberNode | null = unitOfWork
+  while (completedWork !== null) {
+    completeWork(completedWork)
+    const sibling = completedWork.sibling
 
     if (sibling !== null) {
       workInProgress = sibling
       return
     }
-    node = node.return
-    workInProgress = node
+    completedWork = completedWork.return
+    workInProgress = completedWork
   }
 }
