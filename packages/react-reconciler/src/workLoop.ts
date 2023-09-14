@@ -33,6 +33,7 @@ function renderRoot(root: FiberRootNode) {
   // init
   prepareFreshStack(root)
 
+  // render stage
   while (true) {
     try {
       workLoop()
@@ -44,6 +45,11 @@ function renderRoot(root: FiberRootNode) {
       workInProgress = null
     }
   }
+
+  const finishedWork = root.current.alternate
+  root.finishedWork = finishedWork
+
+  // commit stage
 }
 
 function workLoop() {
