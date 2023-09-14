@@ -10,7 +10,7 @@ import {
   enqueueUpdate,
 } from './updateQueue'
 
-export function createContainer(container: Container): FiberRootNode {
+export const createContainer = (container: Container): FiberRootNode => {
   const hostRootFiber = new FiberNode(HostRoot, {}, null)
   const root = new FiberRootNode(container, hostRootFiber)
   hostRootFiber.updateQueue = createUpdateQueue()
@@ -19,10 +19,10 @@ export function createContainer(container: Container): FiberRootNode {
 
 // first render: reactDom.createRoot(root).render(<App/>)
 
-export function updateContainer(
+export const updateContainer = (
   element: ReactElementType | null,
   root: FiberRootNode
-) {
+): ReactElementType | null => {
   const hostRootFiber = root.current
   const update = createUpdate<ReactElementType | null>(element)
   enqueueUpdate(

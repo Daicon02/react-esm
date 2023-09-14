@@ -1,6 +1,8 @@
 import { beginWork } from './beginWork'
+import { commitMutationEffects } from './commitWork'
 import { completeWork } from './completeWork'
 import { FiberNode, FiberRootNode, createWorkInProgress } from './fiber'
+import { MutationMask, NoFlags } from './fiberFlags'
 import { HostRoot } from './workTags'
 
 let workInProgress: FiberNode | null
@@ -9,7 +11,7 @@ function prepareFreshStack(root: FiberRootNode) {
   workInProgress = createWorkInProgress(root.current, {})
 }
 
-export function scheduleUpdateRootOnFiber(fiber: FiberNode) {
+export const scheduleUpdateRootOnFiber = (fiber: FiberNode) => {
   // TODO schedule
   // get fiberRootNode
   const root = markUpdateFromFiberToRoot(fiber)
@@ -50,6 +52,7 @@ function renderRoot(root: FiberRootNode) {
   root.finishedWork = finishedWork
 
   // commit stage
+  commitRoot(root)
 }
 
 function workLoop() {
@@ -81,5 +84,37 @@ function completeUnitOfWork(unitOfWork: FiberNode) {
     }
     completedWork = completedWork.return
     workInProgress = completedWork
+  }
+}
+
+function commitRoot(root: FiberRootNode) {
+  const finishedWork = root.finishedWork
+
+  if (finishedWork === null) {
+    return
+  }
+
+  if (__DEV__) {
+    console.warn('commit start', finishedWork)
+  }
+
+  // reset
+  root.finishedWork = null
+
+  // check 3 substages exist
+  const subtreeHasEffect =
+    (finishedWork.subtreeFlags & MutationMask) !== NoFlags
+  const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags
+
+  if (subtreeHasEffect || rootHasEffect) {
+    // beforeMutation
+    // mutation
+    commitMutationEffects(finishedWork)
+
+    root.current = finishedWork
+
+    // layout
+  } else {
+    root.current = finishedWork
   }
 }

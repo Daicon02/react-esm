@@ -1,5 +1,5 @@
 import {
-  Instance,
+  Container,
   appendInitialChild,
   createInstance,
   createTextInstance,
@@ -23,7 +23,7 @@ export const completeWork = (wip: FiberNode) => {
         // mount
         // 1. build DOM
         const instance = createInstance(wip.type, newProps)
-        // 2. insert DOM into DOM tree
+        // 2. append DOM into DOM tree
         appendAllChildren(instance, wip)
         wip.stateNode = instance
       }
@@ -36,7 +36,7 @@ export const completeWork = (wip: FiberNode) => {
         // mount
         // 1. build DOM
         const instance = createTextInstance(newProps.content)
-        // 2. insert DOM into DOM tree
+        // 2. append DOM into DOM tree
         wip.stateNode = instance
         bubbleProperties(wip)
       }
@@ -49,7 +49,7 @@ export const completeWork = (wip: FiberNode) => {
   }
 }
 
-function appendAllChildren(parent: Instance, wip: FiberNode) {
+function appendAllChildren(parent: Container, wip: FiberNode) {
   let node = wip.child
   while (node !== null) {
     if (node.tag === HostComponent || node.tag === HostText) {

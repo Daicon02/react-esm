@@ -95,7 +95,9 @@ export const createWorkInProgress = (
   return wip
 }
 
-export function createFiberFromElement(element: ReactElementType): FiberNode {
+export const createFiberFromElement = (
+  element: ReactElementType
+): FiberNode => {
   const { type, key, props } = element
   let fiberTag: WorkTag = FunctionComponent
 
@@ -111,7 +113,7 @@ export function createFiberFromElement(element: ReactElementType): FiberNode {
   return fiber
 }
 
-export function createFiberFromText(content: string | number): FiberNode {
+export const createFiberFromText = (content: string | number): FiberNode => {
   const fiber = new FiberNode(HostText, { content }, null)
   return fiber
 }
