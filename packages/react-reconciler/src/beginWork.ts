@@ -1,8 +1,14 @@
 import { ReactElementType } from 'shared/ReactTypes'
 import { FiberNode } from './fiber'
 import { UpdateQueue, processUpdateQueue } from './updateQueue'
-import { HostComponent, HostRoot, HostText } from './workTags'
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+} from './workTags'
 import { mountChildFibers, reconcileChildFibers } from './childFibers'
+import { renderWithHooks } from './fiberHooks'
 export const beginWork = (wip: FiberNode): FiberNode | null => {
   // compare and return new fiberNode
   switch (wip.tag) {
@@ -12,6 +18,8 @@ export const beginWork = (wip: FiberNode): FiberNode | null => {
       return updateHostComponent(wip)
     case HostText:
       return null
+    case FunctionComponent:
+      return updateFunctionComponent(wip)
     default:
       if (__DEV__) {
         console.warn('unrealized type in beginWork', wip.tag)
@@ -38,9 +46,15 @@ function updateHostRoot(wip: FiberNode): FiberNode | null {
 }
 
 // eg: <div><span/></div>
-function updateHostComponent(wip: FiberNode) {
+function updateHostComponent(wip: FiberNode): FiberNode | null {
   const nextProps = wip.pendingProps
   const nextChildren = nextProps.children
+  reconcileChildren(wip, nextChildren)
+  return wip.child
+}
+
+function updateFunctionComponent(wip: FiberNode): FiberNode | null {
+  const nextChildren = renderWithHooks(wip)
   reconcileChildren(wip, nextChildren)
   return wip.child
 }
