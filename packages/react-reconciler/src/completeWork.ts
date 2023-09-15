@@ -1,5 +1,6 @@
 import {
   Container,
+  Instance,
   appendInitialChild,
   createInstance,
   createTextInstance,
@@ -49,7 +50,7 @@ export const completeWork = (wip: FiberNode) => {
   }
 }
 
-function appendAllChildren(parent: Container, wip: FiberNode) {
+function appendAllChildren(parent: Instance, wip: FiberNode) {
   let node = wip.child
   while (node !== null) {
     if (node.tag === HostComponent || node.tag === HostText) {
@@ -73,6 +74,7 @@ function appendAllChildren(parent: Container, wip: FiberNode) {
   }
 }
 
+// bubble side effects to HostRoot
 function bubbleProperties(completedWork: FiberNode) {
   let subtreeFlags = NoFlags
   let child = completedWork.child

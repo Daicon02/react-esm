@@ -48,10 +48,12 @@ function commitPlacement(finishedWork: FiberNode) {
   // find parent instance
   const hostParent = getHostParent(finishedWork)
   // append into DOM tree
-  appendPlacementNodeIntoContainer(finishedWork, hostParent)
+  if (hostParent !== null) {
+    appendPlacementNodeIntoContainer(finishedWork, hostParent)
+  }
 }
 
-function getHostParent(fiber: FiberNode): Container {
+function getHostParent(fiber: FiberNode): Container | null {
   let parent = fiber.return
 
   while (parent) {
@@ -68,6 +70,7 @@ function getHostParent(fiber: FiberNode): Container {
   if (__DEV__) {
     console.warn('can not find host parent')
   }
+  return null
 }
 
 function appendPlacementNodeIntoContainer(
@@ -76,7 +79,7 @@ function appendPlacementNodeIntoContainer(
 ) {
   if (node.tag === HostComponent || node.tag === HostText) {
     const stateNode = node.stateNode
-    appendChildToContainer(stateNode, hostParent)
+    appendChildToContainer(hostParent, stateNode)
     return
   }
   const child = node.child

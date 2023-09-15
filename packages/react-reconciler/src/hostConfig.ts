@@ -1,10 +1,11 @@
 export type Container = any
+export type Instance = any
 
-export const createInstance = (...args: any) => {
+export const createInstance = (...args: any): Instance => {
   return {} as any
 }
 
-export const createTextInstance = (...args: any) => {
+export const createTextInstance = (...args: any): Instance => {
   return {} as any
 }
 

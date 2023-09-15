@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:dev": "rimraf dist && rollup --bundleConfigAsCjs --config scripts/rollup/react.config.js",
+    "build:dev": "rimraf dist && rollup --bundleConfigAsCjs --config scripts/rollup/dev.config.js",
     "lint": "eslint --ext .ts,.tsx,.js,.jsx ./packages",
     "lint:fix": "eslint --fix --ext .ts,.tsx,.js,.jsx --quiet ./packages"
   },
@@ -14,6 +14,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
+    "@rollup/plugin-alias": "^5.0.0",
     "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-replace": "^5.0.2",
     "@types/fs-extra": "^11.0.1",
