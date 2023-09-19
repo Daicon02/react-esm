@@ -42,8 +42,10 @@ export const renderWithHooks = (wip: FiberNode) => {
   // FC render
   const children = Component(props)
 
-  // reset currentlyRenderingFiber
+  // reset
   currentlyRenderingFiber = null
+  workInProgressHook = null
+  currentHook = null
 
   return children
 }
