@@ -26,6 +26,14 @@ const ReactElement = function (
   return element
 }
 
+export const isValidElement = (object: any): boolean => {
+  return (
+    typeof object === 'object' &&
+    object !== null &&
+    object.$$typeof === REACT_ELEMENT_TYPE
+  )
+}
+
 export const jsx = (
   type: ElementType,
   config: any,
@@ -41,7 +49,7 @@ export const jsx = (
       key = val !== undefined ? '' + val : key
       continue
     }
-    if (prop === 'ref') {
+    if (prop === 'ref' && val !== undefined) {
       ref = ref !== undefined ? val : ref
       continue
     }
@@ -70,7 +78,7 @@ export const jsxDEV = (type: ElementType, config: any): ReactElementType => {
       key = val !== undefined ? '' + val : key
       continue
     }
-    if (prop === 'ref') {
+    if (prop === 'ref' && val !== undefined) {
       ref = ref !== undefined ? val : ref
       continue
     }

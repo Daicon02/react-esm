@@ -61,12 +61,20 @@ function updateFunctionComponent(wip: FiberNode): FiberNode | null {
 
 function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
   const current = wip.alternate
+  wip.child =
+    current === null
+      ? // Establishing parent-child Fiber relationships
+        // mount -> not track side effects
+        mountChildFibers(wip, null, children)
+      : // update -> track side effects
+        reconcileChildFibers(wip, current.child, children)
 
-  if (current !== null) {
-    // update -> track side effects
-    wip.child = reconcileChildFibers(wip, current.child, children)
-  } else {
-    // mount -> not track side effects
-    wip.child = mountChildFibers(wip, null, children)
-  }
+  // if (current !== null) {
+  //   // update -> track side effects
+  //   wip.child = reconcileChildFibers(wip, current.child, children)
+  // } else {
+  //   // Establishing parent-child Fiber relationships
+  //   // mount -> not track side effects
+  //   wip.child = mountChildFibers(wip, null, children)
+  // }
 }

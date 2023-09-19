@@ -11,7 +11,7 @@ function prepareFreshStack(root: FiberRootNode) {
   workInProgress = createWorkInProgress(root.current, {})
 }
 
-export const scheduleUpdateRootOnFiber = (fiber: FiberNode) => {
+export const scheduleUpdateOnFiber = (fiber: FiberNode) => {
   // TODO schedule
   // get fiberRootNode
   const root = markUpdateFromFiberToRoot(fiber)

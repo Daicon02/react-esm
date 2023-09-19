@@ -12,7 +12,11 @@ import {
   HostRoot,
   HostText,
 } from './workTags'
-import { NoFlags } from './fiberFlags'
+import { NoFlags, Update } from './fiberFlags'
+
+function markUpdate(wip: FiberNode) {
+  wip.flags |= Update
+}
 
 export const completeWork = (wip: FiberNode) => {
   const newProps = wip.pendingProps
@@ -38,6 +42,11 @@ export const completeWork = (wip: FiberNode) => {
     case HostText:
       if (current !== null && wip.stateNode) {
         // update
+        const oldText = current.memorizedProps.content
+        const newText = newProps.content
+        if (oldText !== newText) {
+          markUpdate(wip)
+        }
       } else {
         // mount
         // 1. build DOM

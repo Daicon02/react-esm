@@ -1,5 +1,9 @@
+import { FiberNode } from 'react-reconciler/src/fiber'
+import { HostComponent, HostText } from 'react-reconciler/src/workTags'
+
 export type Container = Element
 export type Instance = Element
+export type TextInstance = Text
 
 //createInstance: (type: string, props: any) => Instance
 export const createInstance = (type: string, props: any): Instance => {
@@ -25,4 +29,29 @@ export const appendChildToContainer = (
   child: Instance
 ) => {
   parent.appendChild(child)
+}
+
+export const commitUpdate = (finishedWork: FiberNode) => {
+  switch (finishedWork.tag) {
+    case HostText:
+      const content = finishedWork.memorizedProps.content
+      return commitTextUpdate(finishedWork.stateNode, content)
+
+    default:
+      if (__DEV__) {
+        console.warn('unrealized Update type')
+      }
+      break
+  }
+}
+
+export const commitTextUpdate = (
+  textInstance: TextInstance,
+  content: string
+) => {
+  textInstance.textContent = content
+}
+
+export const removeChild = (parent: Instance | Container, child: Instance) => {
+  parent.removeChild(child)
 }

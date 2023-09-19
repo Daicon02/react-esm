@@ -1,18 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 
 export const App = () => {
-  return (
-    <div>
-      <Child />
-    </div>
-  )
+  const [num, setNum] = useState(100)
+  window.setNum = setNum
+  return num === 3 ? <Child /> : <div>{num}</div>
 }
 
-export const Child = () => {
+export function Child() {
   return (
     <div>
-      <span>react-esm 111</span>
+      <span>react-esm</span>
     </div>
   )
 }

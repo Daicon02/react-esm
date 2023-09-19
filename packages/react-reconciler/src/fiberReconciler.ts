@@ -2,7 +2,7 @@ import { FiberNode, FiberRootNode } from './fiber'
 import { HostRoot } from './workTags'
 import { Container } from 'hostConfig'
 import { ReactElementType } from 'shared/ReactTypes'
-import { scheduleUpdateRootOnFiber } from './workLoop'
+import { scheduleUpdateOnFiber } from './workLoop'
 import {
   UpdateQueue,
   createUpdate,
@@ -29,6 +29,6 @@ export const updateContainer = (
     hostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,
     update
   )
-  scheduleUpdateRootOnFiber(hostRootFiber)
+  scheduleUpdateOnFiber(hostRootFiber)
   return element
 }

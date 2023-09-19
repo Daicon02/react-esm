@@ -1,7 +1,23 @@
-import { Container, appendChildToContainer } from 'hostConfig'
+import {
+  Container,
+  appendChildToContainer,
+  commitUpdate,
+  removeChild,
+} from 'hostConfig'
 import { FiberNode, FiberRootNode } from './fiber'
-import { MutationMask, NoFlags, Placement } from './fiberFlags'
-import { HostComponent, HostRoot, HostText } from './workTags'
+import {
+  ChildDeletion,
+  MutationMask,
+  NoFlags,
+  Placement,
+  Update,
+} from './fiberFlags'
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+} from './workTags'
 
 let nextEffect: FiberNode | null = null
 
@@ -38,7 +54,84 @@ function commitMutationEffectsOnFiber(finishedWork: FiberNode) {
     finishedWork.flags &= ~Placement
   }
   // flags Update
+  if ((flags & Update) !== NoFlags) {
+    commitUpdate(finishedWork)
+    finishedWork.flags &= ~Update
+  }
   // flags ChildDeletion
+  if ((flags & ChildDeletion) !== NoFlags) {
+    const deletions = finishedWork.deletions
+    if (deletions !== null) {
+      deletions.forEach((childToDelete: FiberNode) => {
+        commitDeletionEffects(childToDelete)
+      })
+    }
+    finishedWork.flags &= ~ChildDeletion
+  }
+}
+
+function commitDeletionEffects(childToDelete: FiberNode) {
+  let hostChildFiber: FiberNode | null = null
+  function onCommitUnmount(unmountFiber: FiberNode) {
+    switch (unmountFiber.tag) {
+      case HostComponent:
+        if (hostChildFiber === null) {
+          hostChildFiber = unmountFiber
+        }
+        // release ref
+        // TODO release ref
+        return
+      case HostText:
+        if (hostChildFiber === null) {
+          hostChildFiber = unmountFiber
+        }
+        return
+      case FunctionComponent:
+        // TODO useEffect unmount, release ref
+        return
+      default:
+        if (__DEV__) {
+          console.warn('unrealized unmount type', unmountFiber)
+        }
+    }
+  }
+  // find hostChild
+  recursivelyTraverseDeletionEffects(childToDelete, onCommitUnmount)
+  // remove hostChild DOM
+  if (hostChildFiber !== null) {
+    const hostParent = getHostParent(childToDelete)
+    const hostChild = (hostChildFiber as FiberNode).stateNode
+    if (hostParent !== null) {
+      removeChild(hostParent, hostChild)
+    }
+  }
+}
+
+function recursivelyTraverseDeletionEffects(
+  root: FiberNode,
+  onCommitUnmount: (fiber: FiberNode) => void
+) {
+  let node = root
+  while (node !== null) {
+    onCommitUnmount(node)
+
+    if (node.child !== null) {
+      node.child.return = node
+      node = node.child
+      continue
+    }
+    if (node === root) {
+      return
+    }
+    while (node.sibling === null) {
+      if (node.return === null || node.return === root) {
+        return
+      }
+      node = node.return
+    }
+    node.sibling.return = node.return
+    node = node.sibling
+  }
 }
 
 function commitPlacement(finishedWork: FiberNode) {
@@ -56,7 +149,7 @@ function commitPlacement(finishedWork: FiberNode) {
 function getHostParent(fiber: FiberNode): Container | null {
   let parent = fiber.return
 
-  while (parent) {
+  while (parent !== null) {
     const parentTag = parent.tag
     // HostComponent / HostRoot
     if (parentTag === HostComponent) {
