@@ -26,11 +26,16 @@ export const appendInitialChild = (
   parent.appendChild(child)
 }
 
-export const appendChildToContainer = (
-  parent: Instance | Container,
-  child: Instance
-) => {
+export const appendChild = (parent: Instance | Container, child: Instance) => {
   parent.appendChild(child)
+}
+
+export const insertBefore = (
+  parent: Instance | Container,
+  child: Instance,
+  beforeChild: Instance
+) => {
+  parent.insertBefore(child, beforeChild)
 }
 
 export const commitUpdate = (finishedWork: FiberNode) => {

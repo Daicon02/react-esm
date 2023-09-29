@@ -23,7 +23,7 @@ let currentHook: Hook | null = null
 
 const { currentDispatcher } = ReactSharedInternals
 
-export const renderWithHooks = (wip: FiberNode) => {
+export const renderWithHooks = (wip: FiberNode): any => {
   // assignment currentlyRenderingFiber
   currentlyRenderingFiber = wip
   wip.memorizedState = null

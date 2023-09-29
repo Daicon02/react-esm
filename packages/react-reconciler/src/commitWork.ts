@@ -1,7 +1,9 @@
 import {
   Container,
-  appendChildToContainer,
+  Instance,
+  appendChild,
   commitUpdate,
+  insertBefore,
   removeChild,
 } from 'hostConfig'
 import { FiberNode, FiberRootNode } from './fiber'
@@ -75,12 +77,8 @@ function commitDeletionEffects(childToDelete: FiberNode) {
   function onCommitUnmount(unmountFiber: FiberNode) {
     switch (unmountFiber.tag) {
       case HostComponent:
-        if (hostChildFiber === null) {
-          hostChildFiber = unmountFiber
-        }
-        // release ref
-        // TODO release ref
-        return
+      // TODO release ref
+      // Intentional fallthrough to next branch
       case HostText:
         if (hostChildFiber === null) {
           hostChildFiber = unmountFiber
@@ -140,10 +138,48 @@ function commitPlacement(finishedWork: FiberNode) {
   }
   // find parent instance
   const hostParent = getHostParent(finishedWork)
+  // find sibling instace
+  const hostSibling = getHostSibling(finishedWork)
   // append into DOM tree
   if (hostParent !== null) {
-    appendPlacementNodeIntoContainer(finishedWork, hostParent)
+    insertOrAppendPlacementNode(finishedWork, hostParent, hostSibling)
   }
+}
+
+function getHostSibling(fiber: FiberNode): Instance | null {
+  let node: FiberNode = fiber
+  findHostSibling: while (true) {
+    while (node.sibling === null) {
+      const parent = node.return
+      if (parent === null || isHostParent(parent)) {
+        return null
+      }
+      node = parent
+    }
+    node.sibling.return = node.return
+    node = node.sibling
+    while (!isHostFiber(node)) {
+      if ((node.flags & Placement) !== NoFlags) {
+        continue findHostSibling
+      }
+      if (node.child === null) {
+        continue findHostSibling
+      }
+      node.child.return = node
+      node = node.child
+    }
+    if ((node.flags & Placement) === NoFlags) {
+      return node.stateNode
+    }
+  }
+}
+
+function isHostFiber(fiber: FiberNode): boolean {
+  return fiber.tag === HostComponent || fiber.tag === HostText
+}
+
+function isHostParent(parent: FiberNode): boolean {
+  return parent.tag === HostComponent || parent.tag === HostRoot
 }
 
 function getHostParent(fiber: FiberNode): Container | null {
@@ -166,22 +202,28 @@ function getHostParent(fiber: FiberNode): Container | null {
   return null
 }
 
-function appendPlacementNodeIntoContainer(
+function insertOrAppendPlacementNode(
   node: FiberNode,
-  hostParent: Container
+  hostParent: Container,
+  before: Instance | null
 ) {
-  if (node.tag === HostComponent || node.tag === HostText) {
+  const isHost = isHostFiber(node)
+  if (isHost) {
     const stateNode = node.stateNode
-    appendChildToContainer(hostParent, stateNode)
+    if (before !== null) {
+      insertBefore(hostParent, stateNode, before)
+    } else {
+      appendChild(hostParent, stateNode)
+    }
     return
   }
   const child = node.child
   if (child !== null) {
-    appendPlacementNodeIntoContainer(child, hostParent)
+    insertOrAppendPlacementNode(child, hostParent, before)
     let sibling = child.sibling
 
     while (sibling !== null) {
-      appendPlacementNodeIntoContainer(sibling, hostParent)
+      insertOrAppendPlacementNode(sibling, hostParent, before)
       sibling = sibling.sibling
     }
   }

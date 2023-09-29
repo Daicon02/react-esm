@@ -1,13 +1,14 @@
-import { Props, ReactElementType } from 'shared/ReactTypes'
+import { Key, Props, ReactElementType, ReactNode } from 'shared/ReactTypes'
 import {
   FiberNode,
   createFiberFromElement,
+  createFiberFromFragment,
   createFiberFromText,
   createWorkInProgress,
 } from './fiber'
-import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from 'shared/ReactSymbols'
 import { ChildDeletion, Placement } from './fiberFlags'
-import { HostText } from './workTags'
+import { Fragment, HostText } from './workTags'
 import { isArray } from 'shared/utils'
 
 type ExistingChildren = Map<string | number, FiberNode>
@@ -61,8 +62,12 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
         const elementType = element.type
         if (element.$$typeof === REACT_ELEMENT_TYPE) {
           if (child.type === elementType) {
+            let props = element.props
+            if (element.type === REACT_FRAGMENT_TYPE) {
+              props = element.props.children
+            }
             // reuse fiber
-            const existing = useFiber(child, element.props)
+            const existing = useFiber(child, props)
             existing.return = returnFiber
             // flag deletion remaining children
             deleteRemainingChildren(returnFiber, child.sibling)
@@ -86,9 +91,14 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
 
     // mount
     // create fiberNode from element
-    const fiber = createFiberFromElement(element)
-    fiber.return = returnFiber
-    return fiber
+    let created: FiberNode
+    if (element.type === REACT_FRAGMENT_TYPE) {
+      created = createFiberFromFragment(element.props.children, key)
+    } else {
+      created = createFiberFromElement(element)
+    }
+    created.return = returnFiber
+    return created
   }
 
   function reconcileSingleTextNode(
@@ -142,6 +152,7 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
       existingChildren.set(keyToUse, current)
       current = current.sibling
     }
+
     // 2. travel newChild in the map, check key && type
     for (const [newIndex, newChild] of newChildren.entries()) {
       const newFiber = updateFromMap(
@@ -150,17 +161,18 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
         newIndex,
         newChild
       )
-      if (newFiber === null || !shouldTrackSideEffects) {
+      if (newFiber === null) {
         continue
       }
       // delete reused fibers in the map
-      if (newFiber.alternate === null) {
+      if (newFiber.alternate !== null && shouldTrackSideEffects) {
         const keyToUse = newFiber.key ? newFiber.key : newIndex
         existingChildren.delete(keyToUse)
       }
 
-      // 3. mark Placement
+      // 3. mark Placement (insertion || move)
       lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIndex)
+      // establish sibling between child Fibers in children
       if (previousNewFiber === null) {
         resultingFirstChild = newFiber
       } else {
@@ -168,13 +180,13 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
       }
       previousNewFiber = newFiber
     }
+
     // 4. delete remaining children in the map
     if (shouldTrackSideEffects) {
       existingChildren.forEach((child: FiberNode) =>
         deleteChild(returnFiber, child)
       )
     }
-
     return resultingFirstChild
   }
 
@@ -185,15 +197,21 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
   ): number {
     newFiber.index = newIndex
     const current = newFiber.alternate
+    if (!shouldTrackSideEffects) {
+      return lastPlacedIndex
+    }
     if (current !== null) {
+      // update
       const oldIndex = current.index
       if (oldIndex < lastPlacedIndex) {
+        // This is a move
         newFiber.flags |= Placement
         return lastPlacedIndex
       } else {
         return oldIndex
       }
     }
+    // mount: This is an Insertion
     newFiber.flags |= Placement
     return lastPlacedIndex
   }
@@ -205,13 +223,19 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
     newChild: any
   ): FiberNode | null {
     const keyToUse = newChild.key ? newChild.key : newIndex
-    const matchedFiber = existingChildren.get(keyToUse) as FiberNode
+    const matchedFiber = existingChildren.get(keyToUse) || null
     // HostText
     if (
       (typeof newChild === 'string' && newChild !== '') ||
       typeof newChild === 'number'
     ) {
       return updateTextNode(returnFiber, matchedFiber, '' + newChild)
+    }
+
+    // Array types
+    if (isArray(newChild)) {
+      const elements = newChild as ReactNode
+      return updateFragment(returnFiber, matchedFiber, elements, null)
     }
 
     // ReactElement
@@ -232,20 +256,24 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
       }
     }
 
-    // TODO Array types && Fragment
-    if (isArray(newChild) && __DEV__) {
-      console.warn('unrealized array type child')
-      return null
-    }
     return null
   }
 
   function updateElement(
     returnFiber: FiberNode,
-    matchedFiber: FiberNode,
+    matchedFiber: FiberNode | null,
     element: ReactElementType
   ): FiberNode {
     const elementType = element.type
+    if (elementType === REACT_FRAGMENT_TYPE) {
+      return updateFragment(
+        returnFiber,
+        matchedFiber,
+        element.props.children,
+        element.key
+      )
+    }
+
     if (matchedFiber !== null) {
       if (matchedFiber.type === elementType) {
         const existing = useFiber(matchedFiber, element.props)
@@ -256,6 +284,25 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
     const created = createFiberFromElement(element)
     created.return = returnFiber
     return created
+  }
+
+  function updateFragment(
+    returnFiber: FiberNode,
+    matchedFiber: FiberNode | null,
+    elements: ReactNode,
+    key: Key
+  ): FiberNode {
+    if (matchedFiber === null || matchedFiber.tag !== Fragment) {
+      // mount || cannot reuse
+      const created = createFiberFromFragment(elements, key)
+      created.return = returnFiber
+      return created
+    } else {
+      // reuse
+      const existing = useFiber(matchedFiber, elements)
+      existing.return = returnFiber
+      return existing
+    }
   }
 
   function updateTextNode(
@@ -274,12 +321,25 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
     }
   }
 
-  function reconcileChildFibers(
+  function reconcileChildFibersImpl(
     returnFiber: FiberNode,
     currentFirstChild: FiberNode | null,
-    newChild?: any
-  ) {
+    newChild: any
+  ): FiberNode | null {
     // type checking
+    const isUnkeyedTopLevelFragment =
+      typeof newChild === 'object' &&
+      newChild !== null &&
+      newChild.type === REACT_FRAGMENT_TYPE &&
+      newChild.key === null
+    if (isUnkeyedTopLevelFragment) {
+      newChild = newChild.props.children
+    }
+
+    // multi node -> <ul>li * 3</ul>
+    if (isArray(newChild)) {
+      return reconcileChildrenArray(returnFiber, currentFirstChild, newChild)
+    }
     // ReactElement
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {
@@ -294,10 +354,6 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
           }
           break
       }
-      // multi node -> <ul>li * 3</ul>
-      if (isArray(newChild)) {
-        return reconcileChildrenArray(returnFiber, currentFirstChild, newChild)
-      }
     }
 
     // HostText
@@ -310,13 +366,26 @@ function createChildReconciler(shouldTrackSideEffects: boolean) {
       )
     }
     if (currentFirstChild !== null) {
-      deleteChild(returnFiber, currentFirstChild)
+      deleteRemainingChildren(returnFiber, currentFirstChild)
     }
 
     if (__DEV__) {
       console.warn('unrealized reconcile types', newChild)
     }
     return null
+  }
+
+  function reconcileChildFibers(
+    returnFiber: FiberNode,
+    currentFirstChild: FiberNode | null,
+    newChild: any
+  ): FiberNode | null {
+    const firstChildFiber = reconcileChildFibersImpl(
+      returnFiber,
+      currentFirstChild,
+      newChild
+    )
+    return firstChildFiber
   }
 
   return reconcileChildFibers

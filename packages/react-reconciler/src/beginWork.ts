@@ -1,7 +1,7 @@
-import { ReactElementType } from 'shared/ReactTypes'
 import { FiberNode } from './fiber'
 import { UpdateQueue, processUpdateQueue } from './updateQueue'
 import {
+  Fragment,
   FunctionComponent,
   HostComponent,
   HostRoot,
@@ -20,12 +20,20 @@ export const beginWork = (wip: FiberNode): FiberNode | null => {
       return null
     case FunctionComponent:
       return updateFunctionComponent(wip)
+    case Fragment:
+      return updateFragment(wip)
     default:
       if (__DEV__) {
         console.warn('unrealized type in beginWork', wip.tag)
       }
       return null
   }
+}
+
+function updateFragment(wip: FiberNode): FiberNode | null {
+  const nextChildren = wip.pendingProps
+  reconcileChildren(wip, nextChildren)
+  return wip.child
 }
 
 // first render: reactDom.createRoot(root).render(<App/>)
@@ -59,7 +67,7 @@ function updateFunctionComponent(wip: FiberNode): FiberNode | null {
   return wip.child
 }
 
-function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
+function reconcileChildren(wip: FiberNode, children: any) {
   const current = wip.alternate
   wip.child =
     current === null
