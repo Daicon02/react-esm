@@ -9,17 +9,21 @@ import {
 } from './workTags'
 import { mountChildFibers, reconcileChildFibers } from './childFibers'
 import { renderWithHooks } from './fiberHooks'
-export const beginWork = (wip: FiberNode): FiberNode | null => {
+import { Lanes } from './fiberLane'
+export const beginWork = (
+  wip: FiberNode,
+  renderLanes: Lanes
+): FiberNode | null => {
   // compare and return new fiberNode
   switch (wip.tag) {
     case HostRoot:
-      return updateHostRoot(wip)
+      return updateHostRoot(wip, renderLanes)
     case HostComponent:
       return updateHostComponent(wip)
     case HostText:
       return null
     case FunctionComponent:
-      return updateFunctionComponent(wip)
+      return updateFunctionComponent(wip, renderLanes)
     case Fragment:
       return updateFragment(wip)
     default:
@@ -38,12 +42,12 @@ function updateFragment(wip: FiberNode): FiberNode | null {
 
 // first render: reactDom.createRoot(root).render(<App/>)
 // memorizedState = <App/> -> son of hostRootFiber && type === ReactElementType
-function updateHostRoot(wip: FiberNode): FiberNode | null {
+function updateHostRoot(wip: FiberNode, renderLanes: Lanes): FiberNode | null {
   const baseState = wip.memorizedState
   const updateQueue = wip.updateQueue as UpdateQueue<Element>
   const pending = updateQueue.shared.pending
   updateQueue.shared.pending = null
-  const { memorizedState } = processUpdateQueue(baseState, pending)
+  const { memorizedState } = processUpdateQueue(baseState, pending, renderLanes)
   wip.memorizedState = memorizedState
 
   const nextChildren = wip.memorizedState
@@ -61,8 +65,11 @@ function updateHostComponent(wip: FiberNode): FiberNode | null {
   return wip.child
 }
 
-function updateFunctionComponent(wip: FiberNode): FiberNode | null {
-  const nextChildren = renderWithHooks(wip)
+function updateFunctionComponent(
+  wip: FiberNode,
+  renderLanes: Lanes
+): FiberNode | null {
+  const nextChildren = renderWithHooks(wip, renderLanes)
   reconcileChildren(wip, nextChildren)
   return wip.child
 }

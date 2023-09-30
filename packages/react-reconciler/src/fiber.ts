@@ -9,6 +9,7 @@ import {
   WorkTag,
 } from './workTags'
 import { Flags } from './fiberFlags'
+import { Lane, Lanes, NoLane, NoLanes } from './fiberLane'
 
 export class FiberNode {
   tag: WorkTag
@@ -32,6 +33,9 @@ export class FiberNode {
   subtreeFlags: Flags
   deletions: FiberNode[] | null
   updateQueue: unknown
+
+  lanes: Lanes
+  childLanes: Lanes
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     this.tag = tag
@@ -60,6 +64,9 @@ export class FiberNode {
     this.flags = NoFlags
     this.subtreeFlags = NoFlags
     this.deletions = null
+
+    this.lanes = NoLanes
+    this.childLanes = NoLanes
   }
 }
 
@@ -67,12 +74,16 @@ export class FiberRootNode {
   container: Container
   current: FiberNode
   finishedWork: FiberNode | null
+  pendingLanes: Lanes
+  finishedLanes: Lanes
 
   constructor(container: Container, hostRootFiber: FiberNode) {
     this.container = container
     this.current = hostRootFiber
     hostRootFiber.stateNode = this
     this.finishedWork = null
+    this.pendingLanes = NoLanes
+    this.finishedLanes = NoLanes
   }
 }
 

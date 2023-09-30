@@ -10,6 +10,7 @@ import {
 } from './updateQueue'
 import { Action } from 'shared/ReactTypes'
 import { scheduleUpdateOnFiber } from './workLoop'
+import { Lanes, NoLanes, requestUpdateLane } from './fiberLane'
 
 interface Hook {
   memorizedState: any
@@ -20,10 +21,12 @@ interface Hook {
 let currentlyRenderingFiber: FiberNode | null = null
 let workInProgressHook: Hook | null = null
 let currentHook: Hook | null = null
+let renderLanes: Lanes = NoLanes
 
 const { currentDispatcher } = ReactSharedInternals
 
-export const renderWithHooks = (wip: FiberNode): any => {
+export const renderWithHooks = (wip: FiberNode, lanes: Lanes): any => {
+  renderLanes = lanes
   // assignment currentlyRenderingFiber
   currentlyRenderingFiber = wip
   wip.memorizedState = null
@@ -66,7 +69,11 @@ function updateState<State>(): [State, Dispatch<State>] {
   const pending = queue.shared.pending
 
   if (pending !== null) {
-    const { memorizedState } = processUpdateQueue(hook.memorizedState, pending)
+    const { memorizedState } = processUpdateQueue(
+      hook.memorizedState,
+      pending,
+      renderLanes
+    )
     hook.memorizedState = memorizedState
   }
 
@@ -138,9 +145,10 @@ function dispatchSetState<State>(
   updateQueue: UpdateQueue<State>,
   action: Action<State>
 ) {
-  const update = createUpdate(action)
+  const lane = requestUpdateLane()
+  const update = createUpdate(action, lane)
   enqueueUpdate(updateQueue, update)
-  scheduleUpdateOnFiber(fiber)
+  scheduleUpdateOnFiber(fiber, lane)
 }
 
 function mountWorkInProgressHook(): Hook {

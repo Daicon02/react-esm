@@ -62,3 +62,10 @@ export const commitTextUpdate = (
 export const removeChild = (parent: Instance | Container, child: Instance) => {
   parent.removeChild(child)
 }
+
+export const scheduleMicrotask =
+  typeof queueMicrotask === 'function'
+    ? queueMicrotask
+    : typeof Promise === 'function'
+    ? (callback: (...args: any) => void) => Promise.resolve(null).then(callback)
+    : setTimeout
