@@ -73,15 +73,25 @@ function commitMutationEffectsOnFiber(finishedWork: FiberNode) {
 }
 
 function commitDeletionEffects(childToDelete: FiberNode) {
-  let hostChildFiber: FiberNode | null = null
-  function onCommitUnmount(unmountFiber: FiberNode) {
-    switch (unmountFiber.tag) {
+  // This hostParent is used in commitDeletionEffects to mark the firstHostChild
+  // which means dom API removeChild() is called once
+  let hostParent = getHostParent(childToDelete)
+  commitDeletionEffectsOnFiber(childToDelete)
+
+  function commitDeletionEffectsOnFiber(childToDelete: FiberNode) {
+    switch (childToDelete.tag) {
       case HostComponent:
       // TODO release ref
       // Intentional fallthrough to next branch
       case HostText:
-        if (hostChildFiber === null) {
-          hostChildFiber = unmountFiber
+        const prevHostParent = hostParent
+        hostParent = null
+        recursivelyTraverseDeletionEffects(childToDelete)
+        hostParent = prevHostParent
+        if (hostParent !== null) {
+          console.log('remove')
+
+          removeChild(hostParent, childToDelete.stateNode)
         }
         return
       case FunctionComponent:
@@ -89,46 +99,19 @@ function commitDeletionEffects(childToDelete: FiberNode) {
         return
       default:
         if (__DEV__) {
-          console.warn('unrealized unmount type', unmountFiber)
+          console.warn('unrealized unmount type', childToDelete)
         }
     }
   }
-  // find hostChild
-  recursivelyTraverseDeletionEffects(childToDelete, onCommitUnmount)
-  // remove hostChild DOM
-  if (hostChildFiber !== null) {
-    const hostParent = getHostParent(childToDelete)
-    const hostChild = (hostChildFiber as FiberNode).stateNode
-    if (hostParent !== null) {
-      removeChild(hostParent, hostChild)
-    }
-  }
-}
 
-function recursivelyTraverseDeletionEffects(
-  root: FiberNode,
-  onCommitUnmount: (fiber: FiberNode) => void
-) {
-  let node = root
-  while (node !== null) {
-    onCommitUnmount(node)
+  function recursivelyTraverseDeletionEffects(parent: FiberNode) {
+    console.log('recursivelyTraverse')
 
-    if (node.child !== null) {
-      node.child.return = node
-      node = node.child
-      continue
+    let child = parent.child
+    while (child !== null) {
+      commitDeletionEffectsOnFiber(child)
+      child = child.sibling
     }
-    if (node === root) {
-      return
-    }
-    while (node.sibling === null) {
-      if (node.return === null || node.return === root) {
-        return
-      }
-      node = node.return
-    }
-    node.sibling.return = node.return
-    node = node.sibling
   }
 }
 
@@ -182,7 +165,7 @@ function isHostParent(parent: FiberNode): boolean {
   return parent.tag === HostComponent || parent.tag === HostRoot
 }
 
-function getHostParent(fiber: FiberNode): Container | null {
+function getHostParent(fiber: FiberNode): Container | Element | null {
   let parent = fiber.return
 
   while (parent !== null) {

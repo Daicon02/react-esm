@@ -1,4 +1,4 @@
-import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from 'shared/ReactSymbols'
 import {
   Key,
   Props,
@@ -25,6 +25,8 @@ const ReactElement = function (
   }
   return element
 }
+
+export const Fragment = REACT_FRAGMENT_TYPE
 
 export const isValidElement = (object: any): boolean => {
   return (
