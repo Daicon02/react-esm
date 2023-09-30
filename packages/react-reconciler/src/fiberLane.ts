@@ -18,11 +18,11 @@ export const mergeLanes = (a: Lanes | Lane, b: Lanes | Lane): Lane => {
   return a | b
 }
 
-export const removeLane = (set: Lanes, subSet: Lane): Lanes => {
+export const removeLane = (set: Lanes, subSet: Lanes | Lane): Lanes => {
   return set & ~subSet
 }
 
-export const requestUpdateLane = () => {
+export const requestUpdateLane = (): Lane => {
   return SyncLane
 }
 

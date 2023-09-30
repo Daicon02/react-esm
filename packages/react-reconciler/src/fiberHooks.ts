@@ -67,6 +67,7 @@ function updateState<State>(): [State, Dispatch<State>] {
   // calculate new state
   const queue = hook.updateQueue as UpdateQueue<State>
   const pending = queue.shared.pending
+  queue.shared.pending = null
 
   if (pending !== null) {
     const { memorizedState } = processUpdateQueue(
