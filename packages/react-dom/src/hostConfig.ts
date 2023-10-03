@@ -26,12 +26,24 @@ export const appendInitialChild = (
   parent.appendChild(child)
 }
 
-export const appendChild = (parent: Instance | Container, child: Instance) => {
+export const appendChildToContainer = (parent: Container, child: Instance) => {
   parent.appendChild(child)
 }
 
+export const appendChild = (parent: Instance, child: Instance) => {
+  parent.appendChild(child)
+}
+
+export const insertInContainerBefore = (
+  parent: Container,
+  child: Instance,
+  beforeChild: Instance
+) => {
+  parent.insertBefore(child, beforeChild)
+}
+
 export const insertBefore = (
-  parent: Instance | Container,
+  parent: Instance,
   child: Instance,
   beforeChild: Instance
 ) => {

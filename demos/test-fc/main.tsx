@@ -24,7 +24,15 @@ export function Child() {
     console.log('child mount')
     return () => console.log('child unmount')
   }, [])
-  return 'I am child'
+  return <GrandSon />
+}
+
+export function GrandSon() {
+  useEffect(() => {
+    console.log('Grandson mount')
+    return () => console.log('GrandSon unmount')
+  }, [])
+  return <div>GrandSon</div>
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
