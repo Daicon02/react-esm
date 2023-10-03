@@ -118,7 +118,7 @@ function collectEvents(
 
 function getEventCallbackNameListFromEventType(
   eventType: string
-): EventCallbackNameList | undefined {
+): EventCallbackNameList | void {
   const eventTypeMap: EventTypeMap = {
     click: ['onClickCapture', 'onClick'],
   }

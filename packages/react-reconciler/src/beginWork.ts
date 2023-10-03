@@ -1,5 +1,5 @@
 import { FiberNode } from './fiber'
-import { UpdateQueue, processUpdateQueue } from './updateQueue'
+import { UpdateQueue, processUpdateQueue } from './fiberUpdateQueue'
 import {
   Fragment,
   FunctionComponent,
@@ -10,6 +10,7 @@ import {
 import { mountChildFibers, reconcileChildFibers } from './childFibers'
 import { renderWithHooks } from './fiberHooks'
 import { Lanes } from './fiberLane'
+
 export const beginWork = (
   wip: FiberNode,
   renderLanes: Lanes

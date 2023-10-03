@@ -1,6 +1,6 @@
-import { Dispatch } from 'react/src/currentDispatcher'
 import { Action } from 'shared/ReactTypes'
 import { Lane, Lanes, includesSomeLane } from './fiberLane'
+import { Dispatch } from 'shared/ReactInternalTypes'
 
 export interface Update<State> {
   action: Action<State>

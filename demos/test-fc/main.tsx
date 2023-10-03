@@ -1,40 +1,30 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 
 export const App = () => {
-  const [num, setNum] = useState(100)
+  const [num, setNum] = useState(0)
+  useEffect(() => {
+    console.log('App mount')
+  }, [])
+
+  useEffect(() => {
+    console.log('num change create', num)
+    return () => {
+      console.log('num change destroy', num)
+    }
+  }, [num])
 
   return (
-    <div
-      onClickCapture={() => {
-        setNum((num) => num + 1)
-        setNum((num) => num + 1)
-        setNum((num) => num + 1)
-      }}
-    >
-      {num}
-    </div>
+    <div onClick={() => setNum(num + 1)}>{num === 0 ? <Child /> : 'noop'}</div>
   )
 }
 
 export function Child() {
-  const [display, setDisplay] = useState(true)
-  return (
-    <div>
-      {display && (
-        <div>
-          <div>
-            <div>
-              <div>
-                <span>react-esm</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <button onClick={() => setDisplay(!display)}>click</button>
-    </div>
-  )
+  useEffect(() => {
+    console.log('child mount')
+    return () => console.log('child unmount')
+  }, [])
+  return 'I am child'
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

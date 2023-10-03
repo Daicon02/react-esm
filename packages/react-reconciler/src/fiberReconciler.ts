@@ -8,7 +8,7 @@ import {
   createUpdate,
   createUpdateQueue,
   enqueueUpdate,
-} from './updateQueue'
+} from './fiberUpdateQueue'
 import { requestUpdateLane } from './fiberLane'
 
 export const createContainer = (container: Container): FiberRootNode => {

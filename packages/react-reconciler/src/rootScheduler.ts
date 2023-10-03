@@ -13,9 +13,6 @@ export const ensureRootIsScheduled = (root: FiberRootNode) => {
   if (updateLane === SyncLane) {
     // micro task schedule
     // synchronous update
-    if (__DEV__) {
-      console.log('in micro task queue, priority: ', updateLane)
-    }
     scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))
     scheduleMicrotask(flushSyncCallbacks)
   } else {

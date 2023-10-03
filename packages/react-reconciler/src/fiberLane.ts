@@ -4,11 +4,11 @@ export type Lane = number
 
 export type Lanes = number
 
-export const NoLane = 0b0000
+export const NoLane = /*   */ 0b0000
 
-export const NoLanes = 0b0000
+export const NoLanes = /*  */ 0b0000
 
-export const SyncLane = 0b0001
+export const SyncLane = /* */ 0b0001
 
 export const includesSomeLane = (a: Lanes | Lane, b: Lanes | Lane): boolean => {
   return (a & b) !== NoLanes

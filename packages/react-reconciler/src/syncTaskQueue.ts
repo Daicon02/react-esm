@@ -22,5 +22,6 @@ export const flushSyncCallbacks = () => {
     }
   } finally {
     isFlushingWork = false
+    syncCallbackQueue = null
   }
 }
