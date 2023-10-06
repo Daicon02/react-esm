@@ -26,10 +26,11 @@ export const completeWork = (wip: FiberNode) => {
   switch (wip.tag) {
     case HostComponent:
       if (current !== null && wip.stateNode) {
-        // update
+        // TODO: update
         // 1. check props change
         // 2. flag update
-        updateFiberProps(wip.stateNode, newProps)
+        markUpdate(wip)
+        // updateFiberProps(wip.stateNode, newProps)
       } else {
         // mount
         // 1. build DOM

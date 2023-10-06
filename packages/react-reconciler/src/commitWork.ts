@@ -292,7 +292,7 @@ function getHostParentFiber(fiber: FiberNode): FiberNode {
   )
 }
 
-function getHostParent(fiber: FiberNode): Container | Element | null {
+function getHostParent(fiber: FiberNode): Container | Instance | null {
   let parent = fiber.return
 
   while (parent !== null) {
@@ -340,7 +340,7 @@ function insertOrAppendPlacementNodeIntoContainer(
 
 function insertOrAppendPlacementNode(
   node: FiberNode,
-  hostParent: Instance | Container,
+  hostParent: Instance,
   before: Instance | null
 ) {
   const isHost = isHostFiber(node)

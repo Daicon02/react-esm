@@ -1,5 +1,5 @@
 import { FiberNode } from 'react-reconciler/src/fiber'
-import { HostText } from 'react-reconciler/src/workTags'
+import { HostComponent, HostText } from 'react-reconciler/src/workTags'
 import { DOMElement, updateFiberProps } from './SyntheticEvent'
 import { Props } from 'shared/ReactTypes'
 
@@ -55,7 +55,11 @@ export const commitUpdate = (finishedWork: FiberNode) => {
     case HostText:
       const content = finishedWork.memorizedProps.content
       return commitTextUpdate(finishedWork.stateNode, content)
-
+    case HostComponent:
+      return updateFiberProps(
+        finishedWork.stateNode,
+        finishedWork.memorizedProps
+      )
     default:
       if (__DEV__) {
         console.warn('unrealized Update type')
@@ -71,7 +75,10 @@ export const commitTextUpdate = (
   textInstance.textContent = content
 }
 
-export const removeChild = (parent: Instance | Container, child: Instance) => {
+export const removeChild = (
+  parent: Instance | Container,
+  child: Instance | TextInstance
+) => {
   parent.removeChild(child)
 }
 

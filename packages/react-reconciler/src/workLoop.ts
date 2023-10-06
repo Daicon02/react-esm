@@ -82,6 +82,7 @@ export function performSyncWorkOnRoot(root: FiberRootNode) {
     return
   }
 
+  // render stage
   const existStatus = renderRootSync(root, lanes)
 
   if (lanes === NoLanes && __DEV__) {
