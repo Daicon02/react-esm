@@ -21,7 +21,7 @@ export default [
       {
         file: `${pkgDistPath}/index.js`,
         name: 'ReactNoopRenderer',
-        format: 'umd',
+        format: 'esm',
       },
     ],
     external: [...Object.keys(peerDependencies), 'scheduler'],
@@ -50,7 +50,7 @@ export default [
           name,
           description,
           version,
-          main: 'index.js',
+          module: 'index.js',
           peerDependencies: {
             react: version,
           },

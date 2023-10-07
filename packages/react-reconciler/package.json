@@ -4,7 +4,8 @@
   "description": "React Reconciler",
   "module": "index.ts",
   "dependencies": {
-    "shared": "workspace: *"
+    "shared": "workspace: *",
+    "scheduler": "workspace: *"
   },
   "peerDependencies": {
     "react": "workspace: *"

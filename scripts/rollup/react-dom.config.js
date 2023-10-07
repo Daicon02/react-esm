@@ -21,12 +21,12 @@ export default [
       {
         file: `${pkgDistPath}/index.js`,
         name: 'ReactDOM',
-        format: 'umd',
+        format: 'esm',
       },
       {
         file: `${pkgDistPath}/client.js`,
         name: 'client',
-        format: 'umd',
+        format: 'esm',
       },
     ],
     external: [...Object.keys(peerDependencies), 'scheduler'],
@@ -44,7 +44,7 @@ export default [
           name,
           description,
           version,
-          main: 'index.js',
+          module: 'index.js',
           peerDependencies: {
             react: version,
           },
@@ -59,7 +59,7 @@ export default [
       {
         file: `${pkgDistPath}/test-utils.js`,
         name: 'testUtils',
-        format: 'umd',
+        format: 'esm',
       },
     ],
     external: ['react', 'react-dom', 'scheduler'],

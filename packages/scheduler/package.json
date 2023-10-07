@@ -1,0 +1,9 @@
+{
+  "name": "scheduler",
+  "version": "1.0.0",
+  "description": "Cooperative scheduler for the browser environment",
+  "module": "index.ts",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

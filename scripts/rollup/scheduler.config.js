@@ -6,21 +6,24 @@ import {
 import generatePackageJson from 'rollup-plugin-generate-package-json'
 
 // package name
-const { name, module } = getPackageJSON('react')
-// react package path
+const { name, module } = getPackageJSON('scheduler')
+// scheduler package path
 const pkgPath = resolvePackagePath(name)
-// react dist path
+// scheduler dist path
 const pkgDistPath = resolvePackagePath(name, true)
 
 export default [
-  // react
+  // scheduler
   {
     input: `${pkgPath}/${module}`,
-    output: {
-      file: `${pkgDistPath}/index.js`,
-      name: 'React',
-      format: 'esm',
-    },
+    output: [
+      {
+        file: `${pkgDistPath}/index.js`,
+        name: 'Scheduler',
+        format: 'esm',
+      },
+    ],
+
     plugins: [
       ...getBaseRollupPlugins(),
       generatePackageJson({
@@ -34,24 +37,5 @@ export default [
         }),
       }),
     ],
-  },
-  // jsx-runtime
-  {
-    input: `${pkgPath}/src/jsx.ts`,
-    output: [
-      // jsx-runtime
-      {
-        file: `${pkgDistPath}/jsx-runtime.js`,
-        name: 'jsx-runtime',
-        format: 'umd',
-      },
-      // jsx-dev-runtime
-      {
-        file: `${pkgDistPath}/jsx-dev-runtime.js`,
-        name: 'jsx-dev-runtime',
-        format: 'umd',
-      },
-    ],
-    plugins: getBaseRollupPlugins(),
   },
 ]
